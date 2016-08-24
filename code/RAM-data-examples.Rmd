@@ -1,0 +1,91 @@
+---
+output:
+  html_document: 
+    keep_md: yes
+    variant: markdown_github
+
+---
+  
+  
+```{r message=FALSE}
+library("ggplot2")
+library("tidyr")
+library("dplyr")
+```
+
+```{r}
+values     <- read.csv("http://berkeley.carlboettiger.info/espm-88b/fish/data/values.csv")
+assessment <- read.csv("http://berkeley.carlboettiger.info/espm-88b/fish/data/assessment.csv")
+stock      <- read.csv("http://berkeley.carlboettiger.info/espm-88b/fish/data/stock.csv")
+units      <- read.csv("http://berkeley.carlboettiger.info/espm-88b/fish/data/units.csv")
+area       <- read.csv("http://berkeley.carlboettiger.info/espm-88b/fish/data/area.csv")
+lmestock   <- read.csv("http://berkeley.carlboettiger.info/espm-88b/fish/data/lmestock.csv")
+lmerefs    <- read.csv("http://berkeley.carlboettiger.info/espm-88b/fish/data/lmerefs.csv")
+```
+
+
+```{r}
+tbl <-
+  values %>%
+  left_join(assessment) %>%
+  left_join(stock) %>%
+  left_join(units) %>%
+  left_join(area) %>%
+  left_join(lmestock) %>%
+  left_join(lmerefs) %>%
+  select(scientificname, commonname, tsyear, r, ssb, total, catch_landings, r_unit, ssb_unit, total_unit, catch_landings_unit, country, lme_name, lme_number, stockid, assessid)
+```
+
+
+
+## Examples using Newfoundland Atlantic Cod 
+
+Typically we consider the dynamics of all stocks of a given species in a given Large Marine Ecosystem (LME) as the relevant unit for ecological modeling and resource management.  Often this involves summing over multiple stock assessments and catch data, as such a species may be assessed and consumed by different reports and different countries.
+
+`group_by` species, LME, and year allows us to aggregate catch, sock estimate, and so forth over the potentially multiple stock assessments. Some care must be taken in doing so not to average numbers measured in different units (e.g. metric tons, `MT`, vs thousands of fish, `E03`)
+
+For instance, the famous Atlantic Cod timeseries is comprised over several stock assessments that cover the Grand Banks on the Newfoundland-Labrador Shelf LME, with overlapping time windows:
+
+```{r}
+tbl %>%
+  filter(lme_name == "Newfoundland-Labrador Shelf") %>%
+  filter(commonname == "Atlantic cod") %>%
+  select(country, stockid, assessid, catch_landings_unit, lme_name) %>%
+  distinct()
+```
+
+Consequently we want to sum over concurrent assessments to get the stock totals (`group_by` and `summarize_at` let us do this for all species-lme pairs simultaneously):
+
+
+```{r}
+tbl %>%
+  filter(catch_landings_unit == 'MT') %>%
+  group_by(commonname, lme_name, tsyear) %>%
+  summarise_at(vars(catch_landings, total), sum, na.rm=TRUE) %>%
+  filter(lme_name == "Newfoundland-Labrador Shelf") %>%
+  filter(commonname == "Atlantic cod") %>%
+  ggplot(aes(tsyear, catch_landings)) + geom_line() + ggtitle("Newfoundland Atlantic cod") 
+```
+
+
+In other species, such as the sought-after Southern bluefin tuna (a single fish can sell for over 1 million USD), the species range spans several LME areas, covered by a single assessment:
+
+```{r}
+tbl %>%
+  filter(commonname == "Southern bluefin tuna") %>% 
+  select(country, stockid, assessid, catch_landings_unit, lme_name) %>%
+  distinct()
+```
+
+
+```{r}
+tbl %>%
+  filter(catch_landings_unit == 'MT') %>%
+  group_by(commonname, lme_name, tsyear) %>%
+  summarise_at(vars(catch_landings, total), sum, na.rm=TRUE) %>%
+  filter(commonname == "Southern bluefin tuna") %>% 
+  gather(series, stock, -tsyear, -commonname, -lme_name) %>%
+  ggplot(aes(tsyear, stock, col=series)) + geom_line() + ggtitle("Southern Bluefin Tuna") 
+```
+
+

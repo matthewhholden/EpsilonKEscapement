@@ -1,0 +1,305 @@
+---
+title: Carrying Capacity Optimal Escapement
+author:
+  - name: Matthew Holden
+    email: m.holden1@uq.edu.au
+    affiliation: ARC Centre of Excellence for Environmental Decisions, University of Queensland
+    footnote: Corresponding Author
+  - name: Carl Boettiger
+    email: bob@example.com
+    affiliation: University of California Berkeley
+address:
+  - code: University of Queensland
+    address: School of Biology, Centre for Biodiversity and Conservation Science, St Lucia, QLD, 4072
+  - code: University of California Berkeley
+    address: Department, Street, City, CA, Zip
+abstract: |
+  This is the abstract.
+
+  It consists of two paragraphs.
+
+bibliography: mybibfile.bib
+output: rticles::elsevier_article
+---
+
+_Text based on elsarticle sample manuscript, see [http://www.elsevier.com/author-schemas/latex-instructions#elsarticle](http://www.elsevier.com/author-schemas/latex-instructions#elsarticle)_
+
+\section{Introduction}
+
+\section{Methods}
+Consider the dynamics of a harvested population with biomass $X_t$ at time $t$ governed by the simple stochastic stock recruitment relationship
+
+\begin{equation}
+    x_{t+1} = z_{t+1}f(x_t  - h_t),
+\end{equation}
+
+where $h_t$ is the biomass harvested at time $t$ and $z_{t+1}$ is a strictly positive random variable with mean one. The optimal escapement, $s_t = x_t  - h_t$, is the value $S$ such that $f'(S)=1/\rho$ where $\rho$ is a discrete time discount equal to $1/(1+\delta)$ where $\delta$ is the continuous discount rate \cite{ref1}. For nearly all models commonly used for stock assessment (including Beverton-Holt, Ricker, and Logistic maps) this produces escapement rules of half of carrying capacity or less \cite{ref2}. This seems quite counter-intuitive. There are stocks for which harvest is very low and yet the fish stock is still declining. So the question is, are there models such that optimal escapement is arbitrarily close to carrying capacity and do such models provide better harvest strategies in certain real world fisheries management scenarios?
+
+
+Consider the following choices for $f$ with growth rate $r$ and carrying capacity $k$: 
+
+(1) Beverton-Holt recruitment
+\begin{equation}\label{BH}
+    f(x) = \frac{(1+r)x}{1 + rx/k}, 
+\end{equation}
+
+(2) Ricker recruitment
+\begin{equation}\label{R}
+	f(x) = x e^{r  (1 - x/K)  } , 
+\end{equation}
+
+(3) `Allen" recruitment
+\begin{equation}\label{WA}
+f(x) = x e^{r  (1 - x/k)  (x - c) } , 
+\end{equation}
+
+(4) Strong Allee effect
+\begin{equation}\label{SA}
+f(x) = x + rx(1 - x/K)(c-x) , 
+\end{equation}
+
+(5) Hockey-Stick recruitment
+\begin{equation}\label{HS}
+    f(x) = \begin{cases} 
+      (1+r)x & x < k/(1+r) \\
+      k & x\geq k/(1+r).
+   \end{cases}
+\end{equation}
+In the Hockey-stick model the population grows at rate $r$ until it reaches carrying capacity $k$, at which case there is no growth. In otherwords, it is not smooth.
+
+Optimal escapement in \eqref{BH} is $\frac{k}{r} ( \sqrt{ \rho (1+r) } - 1)$ and in \eqref{HS} is $k/(1+r)$ as long as $r>\delta$. It is clear that by making $r$ and $\delta$ arbitrarily close to zero with $r>\delta$, \eqref{HS} achieves an optimal escapement arbitrarily close to carrying capacity $k$. 
+
+We consider the case where classic Beverton-Holt is reality, but fitting is done with hockey stick and 
+
+\section{Results}
+
+```{r functions}
+### Pella-Tomlinson Surplus Production function 
+  # (phi controls strength of weak allee effect phi=1 recovers logistic/schaeffer)
+  PellaTomlinson = function(s, pars){
+    r = pars[1]; k = pars[2]; phi = pars[3];
+    y = s + r* (phi/(phi + 1)) *s*(1 - (s/k)^phi)
+    return(y)
+  }
+
+  ### Hockey-Stick Recruitment function
+  # HockeyStick = function(s, pars, n){
+  #   r = pars[1]; k = pars[2]; 
+  #   x = cbind( (1+r)*s, rep(k,n) )
+  #   y = apply( x, 1, min )
+  #   return(y)
+  # }
+  
+  HockeyStick = function(s, pars, n){
+    r = pars[1]; k = pars[2]; 
+    y = (1+r)*s
+    y[y > k] = k
+    return(y)
+  }
+  
+  ### Beverton-Holt function
+  BevertonHolt = function(s, pars){
+    r = pars[1]; k = pars[2];
+    y = (1+r)*s / (1 + r*s/k)
+    return(y)
+  }
+```
+
+```{r parametersData}
+  #parameters
+    rho = 1       #discrete discount factor
+    r = 0.25      #growth rate
+    k = 100       #carying capacity
+    sig = .4      #std of normal rv (for lognormal rvs)
+    m = -.5*sig^2 #mean of normal rv such that lognomormal has mean 1
+    phi = 1.5     #power in Pella-Tomlinson function
+    n.dat = 30    #number of escapement data points per simulation
+    n.sim = 2    #number of simulations
+    n.mods = 3    #number of models
+    parms = c(r,k,phi)
+    
+  ###
+  #Generate data to form reality  
+  ###  
+    
+    eDat = matrix( runif(n.sim*n.dat,0,1.02*k), n.sim, n.dat) #random escapement data
+    z = matrix( rlnorm(n.sim*n.dat,meanlog = m, sdlog = sig), n.sim, n.dat) #environmental stochasticisity
+    #biomass data
+    yDat.PT = z*PellaTomlinson(eDat,parms) #biomass data generated by Pella-Tomlinson function
+    yDat.HS = z*HockeyStick(eDat,parms) #biomass data generated by Hockey-Stick
+    yDat.BH = z*BevertonHolt(eDat,parms) #biomass data generated by Beverton-Holt
+  
+```
+
+
+```{r Optimal}
+  OptEscBH = k/r*(sqrt(rho*(1+r)) -1) #optimal Beverton-Holt Escapement
+  OptEscHS = k/(1+r)                  #optimal Hockey-Stick Escapement
+  OptEscL = .5*k                      #optimal Logistic Escapement
+  OptEscPT = (1/(phi+1))^(1/phi) * k  #optimal Pella-Tomlinson Escapement
+```
+
+Logistic escapement is `r OptEscL` and Paella Tomilson Escapement is $\left[\frac{1}{\phi+1}\right]^{1/\phi}k$, with $\phi=$ `r phi` escapement is `r OptEscPT`. Increasing $\phi$ increases optimal escapment
+
+Below we create a matrix of 
+reality - PT HS BH
+model - PT HS BH
+
+```{r SumSquaredErrorFunctions}
+##Data Fitting   
+  ssePT = function(p,x,y){
+    yMod = PellaTomlinson(x,p)
+    return( sum( (y-yMod)^2 ) )
+  }
+
+  sseL = function(p,x,y){
+    yMod = PellaTomlinson(x,c(p,1))
+    return( sum( (y-yMod)^2 ) )
+  }
+  
+  sseHS = function(p,x,y){
+    yMod = HockeyStick(x,p)
+    return( sum( (y-yMod)^2 ) )
+  }
+  
+  sseBH = function(p,x,y){
+    yMod = BevertonHolt(x,p)
+    return( sum( (y-yMod)^2 ) )
+  }
+```
+
+
+```{r Simulation}
+
+parInit = c(r,k)
+r.fit = array( NA, dim=c(n.sim,n.mods,n.mods) )
+k.fit = array( NA, dim=c(n.sim,n.mods,n.mods) )
+phi.fit = array( NA, dim=c(n.sim,n.mods) )
+sse = array( NA, dim=c(n.sim,n.mods,n.mods) )
+fit.OptEsc = array( NA, dim=c(n.sim,n.mods,n.mods) )
+
+for (i in 1:n.sim){
+  
+  #calculated the fitted parameters and SSE .x.y means x is the true model and y is the fitted model
+
+  fit.PT.PT = optim(c(parInit,phi), fn = ssePT, x=eDat[i,], y=yDat.PT[i,])
+  fit.PT.HS = optim(parInit, fn = sseHS, x=eDat[i,], y=yDat.PT[i,])
+  fit.PT.BH = optim(parInit, fn = sseBH, x=eDat[i,], y=yDat.PT[i,])
+  fit.HS.PT = optim(c(parInit,phi), fn = ssePT, x=eDat[i,], y=yDat.HS[i,])
+  fit.HS.HS = optim(parInit, fn = sseHS, x=eDat[i,], y=yDat.HS[i,])
+  fit.HS.BH = optim(parInit, fn = sseBH, x=eDat[i,], y=yDat.HS[i,])
+  fit.BH.PT = optim(c(parInit,phi), fn = ssePT, x=eDat[i,], y=yDat.BH[i,])
+  fit.BH.HS = optim(parInit, fn = sseHS, x=eDat[i,], y=yDat.BH[i,])
+  fit.BH.BH = optim(parInit, fn = sseBH, x=eDat[i,], y=yDat.BH[i,])
+  
+  #store fitted parameters, dim 1 = sim
+  #dim 2 = true model (1=PellaTomlinson, 2=HockeyStick, 3=BevHolt)
+  #dim 3 = fitted model (1=PellaTomlinson, 2=HockeyStick, 3=BevHolt)
+    r.fit[i,,] = matrix(c(fit.PT.PT$par[1], fit.PT.HS$par[1], fit.PT.BH$par[1],
+                     fit.HS.PT$par[1], fit.HS.HS$par[1], fit.HS.BH$par[1],
+                     fit.BH.PT$par[1], fit.BH.HS$par[1], fit.BH.BH$par[1]),
+                   n.mods, n.mods, byrow=TRUE)
+  
+    k.fit[i,,] = matrix(c(fit.PT.PT$par[2], fit.PT.HS$par[2], fit.PT.BH$par[2],
+                     fit.HS.PT$par[2], fit.HS.HS$par[2], fit.HS.BH$par[2],
+                     fit.BH.PT$par[2], fit.BH.HS$par[2], fit.BH.BH$par[2]),
+                   n.mods, n.mods, byrow=TRUE)
+    
+    phi.fit[i,] = c(fit.PT.PT$par[3],  fit.HS.PT$par[3], fit.BH.PT$par[3])
+    
+    sse[i,,] = matrix(c(fit.PT.PT$value, fit.PT.HS$value, fit.PT.BH$value,
+                   fit.HS.PT$value, fit.HS.HS$value, fit.HS.BH$value,
+                   fit.BH.PT$value, fit.BH.HS$value, fit.BH.BH$value),
+                 n.mods, n.mods, byrow=TRUE)
+    
+    fit.OE.PT = (1/(phi.fit[i,]+1))^(1/phi.fit[i,]) * k.fit[i,,1]
+    fit.OE.HS = k.fit[i,,2]/(1+r.fit[i,,2])                  #optimal Hockey-Stick Escapement
+    fit.OE.BH = k.fit[i,,3]/r.fit[i,,3]*(sqrt(rho*(1+r.fit[i,,3])) -1)
+
+    fit.OptEsc[i,,] = cbind(fit.OE.PT, fit.OE.HS, fit.OE.BH)
+  
+}
+
+  #fit.OE.PT = (1/(phi+1))^(1/phi) * k.fit[,,1]
+  fit.OE.BH = k.fit[,,3]/r.fit[,,3]*(sqrt(rho*(1+r.fit[,,3])) -1) #optimal Beverton-Holt Escapement
+  fit.OE.HS = k.fit[,,2]/(1+r.fit[,,2])                  #optimal Hockey-Stick Escapement
+  
+  print(fit.OE.BH)
+  print(fit.OptEsc[1,,])
+  print(k.fit[1,,])
+  print(r.fit[1,,])
+  print(fit.HS.BH$par[2])
+  print(fit.HS.HS)
+  plot(eDat[i,], yDat.HS[i,])
+  plot(eDat[i,], yDat.PT[i,])
+  plot(eDat[i,], yDat.BH[i,])
+```
+
+
+
+
+
+The Elsevier article class
+==========================
+
+#### Installation
+
+If the document class *elsarticle* is not available on your computer,
+you can download and install the system package *texlive-publishers*
+(Linux) or install the LaTeX package *elsarticle* using the package
+manager of your TeX installation, which is typically TeX Live or MikTeX.
+
+#### Usage
+
+Once the package is properly installed, you can use the document class
+*elsarticle* to create a manuscript. Please make sure that your
+manuscript follows the guidelines in the Guide for Authors of the
+relevant journal. It is not necessary to typeset your manuscript in
+exactly the same way as an article, unless you are submitting to a
+camera-ready copy (CRC) journal.
+
+#### Functionality
+
+The Elsevier article class is based on the standard article class and
+supports almost all of the functionality of that class. In addition, it
+features commands and options to format the
+
+-   document style
+
+-   baselineskip
+
+-   front matter
+
+-   keywords and MSC codes
+
+-   theorems, definitions and proofs
+
+-   lables of enumerations
+
+-   citation style and labeling.
+
+Front matter
+============
+
+The author names and affiliations could be formatted in two ways:
+
+(1) Group the authors per affiliation.
+
+(2) Use footnotes to indicate the affiliations.
+
+See the front matter of this document for examples. You are recommended
+to conform your choice to the journal you are submitting to.
+
+Bibliography styles
+===================
+
+There are various bibliography styles available. You can select the
+style of your choice in the preamble of this document. These styles are
+Elsevier styles based on standard styles like Harvard and Vancouver.
+Please use BibTeX to generate your bibliography and include DOIs
+whenever available.
+
+Here are two sample references: @Feynman1963118 [@Dirac1953888].
+
+References {#references .unnumbered}
+==========

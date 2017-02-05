@@ -164,7 +164,7 @@ Consider the dynamics of a harvested population with biomass $x_t$ at time $t$ g
 x_{t+1} = z_{t+1}f(x_t  - h_t),
 \end{equation}
 
-where $h_t$ is the biomass harvested at time $t$ and $z_{t+1}$ is a strictly positive random variable with mean one. The optimal escapement, $s_t = x_t  - h_t$, is the value $S$ such that $f'(S)=1/\rho$ where $\rho$ is a discrete time discount equal to $1/(1+\delta)$ where $\delta$ is the continuous discount rate \cite{ref1}. For nearly all models commonly used for stock assessment (including Beverton-Holt, Ricker, and Logistic maps) this produces escapement rules of half of carrying capacity or less \cite{ref2}. This seems quite counter-intuitive. There are stocks for which harvest is very low and yet the fish stock is still declining. So the question is, are there models such that optimal escapement is arbitrarily close to carrying capacity and do such models provide better harvest strategies in certain real world fisheries management scenarios?
+where $h_t$ is the biomass harvested at time $t$ and $z_{t+1}$ is a strictly positive random variable with mean one. The optimal escapement, $s_t = x_t  - h_t$, is the value $S$ such that $f'(S)=1/\rho$ where $\rho$ is a discrete time discount equal to $1/(1+\delta)$ where $\delta$ is the continuous discount rate \cite{Reed1979}. For nearly all models, commonly used for stock assessment, (including Beverton-Holt, Ricker, and Logistic maps) this produces escapement rules of one half carrying capacity or less \cite{Reed1979,Clark2010}. This seems quite counter-intuitive. There are stocks for which harvest is very low and yet the fish stock is still declining. However, there are models that can produce optimal escapement arbitrarily close to carrying capacity \cite{pella1969}. However, given that fisheries data is often very noisy, which models provide better harvest strategies in real world fisheries management scenarios, especially under the scenario where our models are wrong? 
 
 
 Consider the following choices for $f$ with growth rate $r$ and carrying capacity $k$: 
@@ -187,10 +187,10 @@ Pella Tomlinson recruitment
 f(x) = x + rx\left(\frac{\phi+1}{\phi}\right)\left(1 - \left[\frac{x}{k}\right]^\phi\right). 
 \end{equation}
 
-The Beverton-Holt recruitment function is standard in fisheries dynamics to represent compensitory density dependence. The Hockey-stick model is similar but discontinuous; the population grows at rate $r$, but with abundance abruptly capped at carryingcapacity. Pella-Tomlinson represents over-compensitory dynamcis where large populations can experience population declines due to intraspecific competition for resources. 
+The Beverton-Holt recruitment function is standard in fisheries dynamics to represent compensatory density dependence. The Hockey-stick model is similar but discontinuous; the population grows at rate $r$, but with abundance abruptly capped at carrying capacity. Pella-Tomlinson represents over-compensatory dynamics where large populations can experience population declines due to intraspecific competition for resources. 
 
-While we start with these three simple cases, many other models for population growth are possible, such asother overcompensitory recruitment curves (e.g. Ricker), or even strong allee effects (e.g. Allen).
- 
+While we start with these three simple cases, many other models for population growth are possible, such as other over-compensatory recruitment curves (e.g. Ricker), or even strong Allee effects (e.g. Allen).
+
 %Ricker recruitment
 %\begin{equation}\label{R}
 %f(x) = x e^{r  (1 - x/K)  } , 
@@ -203,54 +203,55 @@ While we start with these three simple cases, many other models for population g
 
 The optimal harvest rule in these models is an escapement strategy, where escapement is the number of individuals that escape harvest. In other words, the manager tries to leave a fixed number of fish in the ocean and this number is called the escapement. The optimal escapement in \eqref{BH} is $\frac{k}{r} ( \sqrt{ \rho (1+r) } - 1)$ and in \eqref{HS} is $k/(1+r)$ as long as $r>\delta$. It is clear that by making $r$ and $\delta$ arbitrarily close to zero with $r>\delta$, \eqref{HS} achieves an optimal escapement arbitrarily close to carrying capacity $k$. 
 
-We consider the case where each of the three models are the true model that generates biomass data with perfect measurement. All three models (of which two are incorrect) are then fit against the this data. With the parameters calculated we compute the optimal escapement using the formulas above. We repeat this proceedure under various parameter combinations and varying degrees of environmental noise.
+We consider the case where each of the three models are the true model that generates the biomass data with perfect measurement and lognormally distributed environmental noise. All three models (of which two are incorrect) are then fit against the data. We then compute the optimal escapement using the formulas above with the parameter values resulting from the fitting procedure. We repeat this process under various low and high values of the intrinsic growth rate, and varying degrees of environmental noise.
 
 \section{Results}
 
-If the growth rate is low ($r=0.15$) then the beverton model generates near optimal yield as long as environmental stochasiticity is weak. However, under strong noise the Beverton Holt model performs generates the least yield, even when Beverton-Holt is the correct model (circles in Fig. \ref{fig:ModelPerfVSig}). The opposite is true for the Hockey-stick model, it performs best (relative to the true model) when the environmental noise is high (triangles in Fig \ref{fig:ModelPerfVSig}), even when it is the incorrect model (Fig \ref{fig:ModelPerfVSig}ac). The Pella-Tomlinson model performs performs reasonably well for all stochasticity levels and model truths (Crosses in Fig \ref{fig:ModelPerfVSig}).
+If the growth rate is low ($r=0.15$) then the Beverton-Holt model generates near optimal yield as long as environmental stochasiticity is weak. However, under strong noise the Beverton-Holt model generates the least yield, even when Beverton-Holt is the correct model (circles in Fig. \ref{fig:ModelPerfVSig}). The opposite is true for the Hockey-stick model, it performs best (relative to the true model) when the environmental noise is high (triangles in Fig \ref{fig:ModelPerfVSig}), even when it is the incorrect model (Fig \ref{fig:ModelPerfVSig}ac). The Pella-Tomlinson model performs reasonably well for all stochasticity levels and model truths (Crosses in Fig \ref{fig:ModelPerfVSig}).
 
-If the growth rate is high ($r=1$) Then the true model always performs better than the wrong models, even for large environmental noise (Circles in Fig \ref{fig:ModelPerfVSig}d, triangles in Fig \ref{fig:ModelPerfVSig}e, and crosses in Fig \ref{fig:ModelPerfVSig}f ). This is unlike the case when en 
+If the growth rate is high ($r=1$) Then the true model always performs better than the wrong models, even for large environmental noise (Circles in Fig \ref{fig:ModelPerfVSig}d, triangles in Fig \ref{fig:ModelPerfVSig}e, and crosses in Fig \ref{fig:ModelPerfVSig}f ). This is unlike the case when the growth rate was low and Beverton-Holt model performed worse than the other models under high noise, even when it was the true model. 
 
 \begin{figure}[tb]
 	\centering
-		\begin{subfigure}[t]{0.02\textwidth}
-			\textbf{a)}
-		\end{subfigure}
-			\begin{subfigure}[t]{0.3\textwidth}
-				\includegraphics[width=\linewidth,valign=t]{True_1_relativeYield_sim.pdf}
-			\end{subfigure}	
-		\begin{subfigure}[t]{0.02\textwidth}
-			\textbf{b)}
-		\end{subfigure}
-			\begin{subfigure}[t]{0.3\textwidth}
-				\includegraphics[width=\linewidth,valign=t]{True_2_relativeYield_sim.pdf}
-			\end{subfigure}	
-		\begin{subfigure}[t]{0.02\textwidth}
-			\textbf{c)}
-		\end{subfigure}
-			\begin{subfigure}[t]{0.3\textwidth}
-				\includegraphics[width=\linewidth,valign=t]{True_3_relativeYield_sim.pdf}
-			\end{subfigure}
-		\begin{subfigure}[t]{0.02\textwidth}
-			\textbf{d)}
-		\end{subfigure}
-			\begin{subfigure}[t]{0.3\textwidth}
-				\includegraphics[width=\linewidth,valign=t]{True_1_relativeYield_sim_high_r.pdf}
-			\end{subfigure}	
-		\begin{subfigure}[t]{0.02\textwidth}
-			\textbf{e)}
-		\end{subfigure}
-			\begin{subfigure}[t]{0.3\textwidth}
-				\includegraphics[width=\linewidth,valign=t]{True_2_relativeYield_sim_high_r.pdf}
-			\end{subfigure}	
-		\begin{subfigure}[t]{0.02\textwidth}
-			\textbf{f)}
-		\end{subfigure}
-			\begin{subfigure}[t]{0.3\textwidth}
-				\includegraphics[width=\linewidth,valign=t]{True_3_relativeYield_sim_high_r.pdf}
-			\end{subfigure}
-	\caption{\textbf{Model Performance under alternative scenarios}. The curves are the means over $1,000$ simulations of harvest yield achieved using the optimal escapement rule produced by a fitted model (circle = Beverton-Holt, triangle = hockey-stick, cross = Pella-Tomlinson) devided by the corresponging yield achieved using the true optimal escapement rule with parameters known, for different values of the standard deviation of the environmental noise. In (row a-c) $r=0.15$, (row d-f) $r=1$. Each column is a different true model. In all plots, $k=100$, and for the Pella Tomlinson model $\phi = 1$.}\label{fig:ModelPerfVSig}
+	\begin{subfigure}[t]{0.02\textwidth}
+		\textbf{a)}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.3\textwidth}
+		\includegraphics[width=\linewidth,valign=t]{True_1_relativeYield_sim.pdf}
+	\end{subfigure}	
+	\begin{subfigure}[t]{0.02\textwidth}
+		\textbf{b)}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.3\textwidth}
+		\includegraphics[width=\linewidth,valign=t]{True_2_relativeYield_sim.pdf}
+	\end{subfigure}	
+	\begin{subfigure}[t]{0.02\textwidth}
+		\textbf{c)}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.3\textwidth}
+		\includegraphics[width=\linewidth,valign=t]{True_3_relativeYield_sim.pdf}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.02\textwidth}
+		\textbf{d)}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.3\textwidth}
+		\includegraphics[width=\linewidth,valign=t]{True_1_relativeYield_sim_high_r.pdf}
+	\end{subfigure}	
+	\begin{subfigure}[t]{0.02\textwidth}
+		\textbf{e)}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.3\textwidth}
+		\includegraphics[width=\linewidth,valign=t]{True_2_relativeYield_sim_high_r.pdf}
+	\end{subfigure}	
+	\begin{subfigure}[t]{0.02\textwidth}
+		\textbf{f)}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.3\textwidth}
+		\includegraphics[width=\linewidth,valign=t]{True_3_relativeYield_sim_high_r.pdf}
+	\end{subfigure}
+	\caption{\textbf{Model Performance under alternative scenarios}. The curves are the means over $1,000$ simulations of harvest yield achieved using the optimal escapement rule produced by a fitted model (circle = Beverton-Holt, triangle = hockey-stick, cross = Pella-Tomlinson) divided by the corresponding yield achieved using the true optimal escapement rule with parameters known, for different values of the standard deviation of the environmental noise. In (row a-c) $r=0.15$, (row d-f) $r=1$. Each column is a different true model. In all plots, $k=100$, and for the Pella Tomlinson model $\phi = 1$.}\label{fig:ModelPerfVSig}
 \end{figure}
+
 
 \section*{References}\label{references}
 \bibliography{NearKEscapement}

@@ -161,7 +161,6 @@ FitData = function(funcs, dat, p0, type.fit, std){
                            func = funcs[[mf]], std = std,
                            lower = lowerBound, upper = upperBound,
                            method = "L-BFGS-B" )
-  
           
           fittedParms[mt,mf,i,1:lp] = optTemp$par
           value[mt,mf,i,] = optTemp$value

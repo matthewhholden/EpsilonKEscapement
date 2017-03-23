@@ -8,6 +8,7 @@
 \bibliographystyle{elsarticle-harv}
 \biboptions{sort&compress} % For natbib
 \usepackage{graphicx}
+\usepackage{array}
 \usepackage{booktabs} % book-quality tables
 \usepackage[font=small]{caption}
 \usepackage[labelformat = empty,position=top]{subcaption}
@@ -136,7 +137,7 @@
 \begin{document}
 \begin{frontmatter}
 
-  \title{Optimal harvest strategies in traditional stochastic fisheries models reduce expected yield}
+  \title{Harvest strategies from traditional fishery models can reduce expected yield over simple alternatives}
     \author[CEED,UQ]{Matthew Holden\corref{c1}}
    \ead{m.holden1@uq.edu.au} 
    \cortext[c1]{Corresponding Author}
@@ -148,7 +149,7 @@
     \address[UCB]{University of California Berkeley}
   
   \begin{abstract}
-
+  In the vast majority of models used for fishery stock assessment and management, the optimal amount of biomass allowed to escape harvest (escapement) is one half carrying capacity or less. However, simple alternative models can produce larger optimal escapements, arbitrarily close to carrying capacity. In this paper we consider under what scenarios do these more conservative models actually lead to higher expected yields than traditional models given different degrees of model uncertainty. In the case where all models are equally likely, the conservative optimal escapement models peformed best, especially in cases with low growth rates and high environmental stochasticity.  
   \end{abstract}
   
  \end{frontmatter}
@@ -157,14 +158,23 @@
 \url{http://www.elsevier.com/author-schemas/latex-instructions\#elsarticle}}
 
 \section{Introduction}
+
+\begin{itemize}
+	\item Most stock assessments use models that produce an optimal escapement of $k/2$ or less
+	\item There are contentious debates about the appropriateness of MSY (and corresponding optimal escapement rules) to set harvest quotas for fisheries managent (ecosystem v. single species, among others, briefly discuss most relevant literature)
+	\item We propose that choosing the wrong model may lead to poor managent and that models that produce more conservative optimal escapement may do better in certain situations, especially when stochasiticity is high and growth rates are low
+	\item Models that produce optimal escapement rules which are robust to uncertainty in model structure may be key to effective management
+\end{itemize}
+
 \section{Methods}
+\subsection{Models}
 Consider the dynamics of a harvested population with biomass $x_t$ at time $t$ governed by the simple stochastic stock recruitment relationship
 
 \begin{equation}
 x_{t+1} = z_{t+1}f(x_t  - h_t),
 \end{equation}
 
-where $h_t$ is the biomass harvested at time $t$ and $z_{t+1}$ is a strictly positive random variable with mean one. The optimal escapement, $s_t = x_t  - h_t$, is the value $S$ such that $f'(S)=1/\rho$ where $\rho$ is a discrete time discount equal to $1/(1+\delta)$ where $\delta$ is the continuous discount rate \cite{Reed1979}. For nearly all models, commonly used for stock assessment, (including Beverton-Holt, Ricker, and Logistic maps) this produces escapement rules of one half carrying capacity or less \cite{Reed1979,Clark2010}. This seems quite counter-intuitive. There are stocks for which harvest is very low and yet the fish stock is still declining. However, there are models that can produce optimal escapement arbitrarily close to carrying capacity \cite{pella1969}. However, given that fisheries data is often very noisy, which models provide better harvest strategies in real world fisheries management scenarios, especially under the scenario where our models are wrong? 
+where $h_t$ is the biomass harvested at time $t$ and $z_{t+1}$ is a strictly positive random variable with mean one. The optimal escapement, $s_t = x_t  - h_t$, is the value $S$ such that $f'(S)=1/\rho$ where $\rho$ is a discrete time discount factor equal to $1/(1+\delta)$ where $\delta$ is the continuous discount rate \cite{Reed1979}. For nearly all models, commonly used for stock assessment, (including Beverton-Holt, Ricker, and Logistic maps) this produces escapement rules of one half carrying capacity or less \cite{Reed1979,Clark2010}. This seems quite counter-intuitive. There are stocks for which harvest is very low and yet the fish stock is still declining. However, there are models that can produce optimal escapement arbitrarily close to carrying capacity \cite{pella1969}. However, given that fisheries data is often very noisy, which models provide better harvest strategies in real world fisheries management scenarios, especially under the scenario where our models are wrong? 
 
 
 Consider the following choices for $f$ with growth rate $r$ and carrying capacity $k$: 
@@ -203,15 +213,31 @@ While we start with these three simple cases, many other models for population g
 
 The optimal harvest rule in these models is an escapement strategy, where escapement is the number of individuals that escape harvest. In other words, the manager tries to leave a fixed number of fish in the ocean and this number is called the escapement. The optimal escapement in \eqref{BH} is $\frac{k}{r} ( \sqrt{ \rho (1+r) } - 1)$ and in \eqref{HS} is $k/(1+r)$ as long as $r>\delta$. It is clear that by making $r$ and $\delta$ arbitrarily close to zero with $r>\delta$, \eqref{HS} achieves an optimal escapement arbitrarily close to carrying capacity $k$. 
 
-We consider the case where each of the three models are the true model that generates the biomass data with perfect measurement and lognormally distributed environmental noise. All three models (of which two are incorrect) are then fit against the data. We then compute the optimal escapement using the formulas above with the parameter values resulting from the fitting procedure. We repeat this process under various low and high values of the intrinsic growth rate, and varying degrees of environmental noise.
+\subsection{Theoretical experiment}
+We consider the case where each of the three models are the true model that generates the biomass data with perfect measurement and lognormally distributed environmental noise. 
+
+Procedure:
+\begin{enumerate}
+	\item Generate $30$ years worth of biomass time-series data, by simulating a model (which we will call the ``true model") forward in time
+	\item For each model (two of which are not the true model), calculate the parameters that minimize sum squared error of the log transformed data (since noise is multiplicative, and lognormal, log transformation leads to satisfying standard regression assumptions) using the function `optim` in R.
+	\item Calculate optimal escapement given the estimated parameter values for each model
+	\item Deploy the escapement rule to manage a $100$ instances of a simulated fishery, under the true model, for $1,000$ years
+\end{enumerate}
+
+This procedure is repeated for all possible true models (Beverton-Holt, Hockey-Stick, Pella Tomlinson). This generates a value for total average yield for each possible combination of true and fitted models. We repeat this process under various low and high values of the intrinsic growth rate, and varying degrees of environmental noise.
+
+\subsection{Southern Bluefin Tuna case-study}
+Using the RAM Legacy stock assessment database \citep{ricard2012} we repeated the above theoretical experimental procedure, but replacing step one with the true biomass reported in the database. 
 
 \section{Results}
 
-If the growth rate is low ($r=0.15$) then the Beverton-Holt model generates near optimal yield as long as environmental stochasiticity is weak. However, under strong noise the Beverton-Holt model generates the least yield, even when Beverton-Holt is the correct model (circles in Fig. \ref{fig:ModelPerfVSig}). The opposite is true for the Hockey-stick model, it performs best (relative to the true model) when the environmental noise is high (triangles in Fig \ref{fig:ModelPerfVSig}), even when it is the incorrect model (Fig \ref{fig:ModelPerfVSig}ac). The Pella-Tomlinson model performs reasonably well for all stochasticity levels and model truths (Crosses in Fig \ref{fig:ModelPerfVSig}).
+If the growth rate is low ($r=0.15$) then the Beverton-Holt model generates near optimal yield as long as environmental stochasticity is weak. However, under strong noise the Beverton-Holt model generates the least yield, even when Beverton-Holt is the correct model (circles in Fig. \ref{fig:ModelPerfVSig}). The opposite is true for the Hockey-stick model, it performs best (relative to the true model) when the environmental noise is high (triangles in Fig \ref{fig:ModelPerfVSig}), even when it is the incorrect model (Fig \ref{fig:ModelPerfVSig}ac). The Pella-Tomlinson model performs reasonably well for all stochasticity levels and model truths (Crosses in Fig \ref{fig:ModelPerfVSig}).
 
 If the growth rate is high ($r=1$) Then the true model always performs better than the wrong models, even for large environmental noise (Circles in Fig \ref{fig:ModelPerfVSig}d, triangles in Fig \ref{fig:ModelPerfVSig}e, and crosses in Fig \ref{fig:ModelPerfVSig}f ). This is unlike the case when the growth rate was low and Beverton-Holt model performed worse than the other models under high noise, even when it was the true model. 
 
-\begin{figure}[tb]
+
+
+\begin{figure}[!htbp]
 	\centering
 	\begin{subfigure}[t]{0.02\textwidth}
 		\textbf{a)}
@@ -253,6 +279,54 @@ If the growth rate is high ($r=1$) Then the true model always performs better th
 \end{figure}
 
 
+\subsection{Southern Bluefin Tuna case-study}
+We found that both the Beverton-Holt (SSE = 0.070) and Pella Tomlinson (SSE = 0.067) fit the southern bluefin tuna biomass and catch data from the RAM stock assessment database better than the Hockey-stick model (SSE = 0.088) (see Fig. \ref{fig:Tuna} for data and model fits). However, when simulating fish biomass from each of the three fitted blue fin tuna models, the Hockey-stick optimal escapement rule always did better than the other incorrect model (for example when the true model was Beverton Holt, the hockey stick escapement rule achieved 51\% of the yield generated using the Beverton Holt optimal escapement rule, and the Pella-Tomlinson rule only generated 27\% of optimal yield (see Table \ref{table:tuna}). The probability that the Hockey-stick model would do better than the other incorrect model, when the is generated by a Pella-Tomlinson or Beverton-Holt model, by random chance, is 1/9.
+
+
+\begin{figure}[!htbp]
+	\centering
+	\begin{subfigure}[t]{0.02\textwidth}
+		\textbf{a)}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.3\textwidth}
+		\includegraphics[width=\linewidth,valign=t]{TunaBiomass.pdf}
+	\end{subfigure}	
+	\begin{subfigure}[t]{0.02\textwidth}
+		\textbf{b)}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.3\textwidth}
+		\includegraphics[width=\linewidth,valign=t]{TunaCatch.pdf}
+	\end{subfigure}	
+	\begin{subfigure}[t]{0.02\textwidth}
+		\textbf{c)}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.3\textwidth}
+		\includegraphics[width=\linewidth,valign=t]{FittedTuna.pdf}
+	\end{subfigure}
+	\caption{\textbf{Southern Bluefin tuna} (a) biomass and (b) catch time series data in thousands of metric tons. (c) Fitted Beverton-Holt (black), Hockey-stick (blue) and Pella Tomlinson (green) production functions to the data. Escapement is the biomass that escapes harvest in year $t$, $B_t - h_t$, and biomass is the resulting biomass in year $t+1$, $B_{t+1}$.}\label{fig:Tuna}
+\end{figure}
+
+\begin{table}[!htbp]
+	\setlength{\extrarowheight}{2pt}
+	\begin{tabular}{cc|c|c|c|}
+		& \multicolumn{1}{c}{} & \multicolumn{3}{c}{Manager's Model} \\
+		& \multicolumn{1}{c}{} & \multicolumn{1}{c}{$BH$}  & \multicolumn{1}{c}{$HS$}  & \multicolumn{1}{c}{$PT$} \\\cline{3-5}
+		& $BH$ & $1$ & $0.513$ & $0.271$ \\ \cline{3-5}
+		Assumed True Model  & $HS$ & $0.487$ & $1$ & $0.071$ \\\cline{3-5}
+		& $PT$ & $0.410$ & $0.840$ & $1$ \\\cline{3-5}
+	\end{tabular}
+	\caption{Relative performance of optimal escapement strategies, generated by fitting Beverton-Holt (BH), Hockey-Stick (HS), and Pella-Tomlinson (PT) models (columns) to time series data on Southern Bluefin Tuna, in comparison to the true model as in the rows. Each column denotes the perormance of the model. The hockey-stick model performces best compared to all other incorrect models.}\label{table:tuna}
+\end{table}
+
+\section{Discussion / potential directions to take this paper}
+
+\begin{itemize}
+	\item Caveat: correlations between $r$, $k$ and $\phi$ can lead to poor model fits (literature on theta logistic models \citep{polansky2009,clark2010theta} ). It is also unclear to me why the $(\theta + 1)/\theta$ scaling is used in some works and not in others, it might be a statistical fitting issue.
+	\item Caveat: If we instead of looking at column sums from  table \ref{table:tuna} (which assumes uniform uncertainty among the models), we look at weighted column sums by something like a relative AIC, do the results change? For example Hockey-Stick does the best when false, but it is also the most liekly to be false (i.e. has the worst model fit to the data).
+	\item Direction: If we repeat table \ref{table:tuna} for several species in RAM would we find a pattern. Perhaps slow growing fish tend to be best managed via a hockeystick model?
+	\item Future direction: what happens when the "true model" is a randomly generated lotka-voltera style food-web and we do stock assessment using these single species models. Do certain single species production functions do best at managing a fish within the greater context of an ecosystem (probably a seperate paper).
+\end{itemize}          
+          
 \section*{References}\label{references}
 \bibliography{NearKEscapement}
 
